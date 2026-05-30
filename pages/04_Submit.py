@@ -2,6 +2,8 @@ import re
 
 import streamlit as st
 
+from tournament.schedule import load_groups
+
 from services.google_sheets import submit_predictions
 
 st.title("Submit Predictions")
@@ -40,6 +42,20 @@ st.session_state["email"] = email
 st.session_state["access_code"] = access_code
 
 # ------------------------------------------------------------
+# Development Testing Helper
+# ------------------------------------------------------------
+if st.secrets.get("environment") == "dev":
+
+    if st.button("Fill Test Predictions"):
+
+        for group in st.session_state.groups:
+            for match in group.matches:
+                match.home_score = 1
+                match.away_score = 1
+
+        st.rerun()
+
+# ------------------------------------------------------------
 # Validation Helpers
 # ------------------------------------------------------------
 def valid_email(email: str) -> bool:
@@ -51,20 +67,37 @@ def valid_email(email: str) -> bool:
 
 def build_prediction_payload():
 
-    predictions = {}
+    groups = st.session_state.groups
 
-    for key, value in st.session_state.predictions.items():
+    if st.secrets["env"]["environment"] == "dev":
+        groups = groups[:2]  # Only Groups A and B
 
-        # Expected:
-        # "22_home"
-        # "22_away"
+    print(groups, st.secrets["env"]["environment"])
 
-        match_id, side = key.split("_")
+    missing = []
+    predictions = []
 
-        if match_id not in predictions:
-            predictions[match_id] = {}
+    for group in groups:
+        for match in group.matches:
 
-        predictions[match_id][side] = value
+            if not match.is_played():
+                missing.append(
+                    f"{group.name}: {match.home_team.name} vs {match.away_team.name}"
+                )
+                continue
+
+            predictions.append({
+                "match_id": match.match_id,
+                "group": group.name,
+                "home_team": match.home_team.name,
+                "away_team": match.away_team.name,
+                "home_score": match.home_score,
+                "away_score": match.away_score,
+            })
+
+    if missing:
+        st.error("Enter predictions for:\n" + "\n".join(missing))
+        return None
 
     return predictions
 
@@ -96,35 +129,14 @@ if st.button("Submit Predictions"):
     # --------------------------------------------------------
     # Validate predictions exist
     # --------------------------------------------------------
-    elif "predictions" not in st.session_state:
-        st.error("No predictions found.")
+    # elif "predictions" not in st.session_state:
+    #     st.error("No predictions found.")
 
     else:
 
         prediction_payload = build_prediction_payload()
 
-        # ----------------------------------------------------
-        # Validate completeness
-        # ----------------------------------------------------
-        incomplete = []
-
-        for match_id, scores in prediction_payload.items():
-
-            if (
-                "home" not in scores
-                or "away" not in scores
-                or scores["home"] is None
-                or scores["away"] is None
-            ):
-                incomplete.append(match_id)
-
-        if incomplete:
-
-            st.error(
-                f"Incomplete predictions for matches: {', '.join(incomplete)}"
-            )
-
-        else:
+        if prediction_payload is not None:
 
             submit_predictions(
                 name=name,

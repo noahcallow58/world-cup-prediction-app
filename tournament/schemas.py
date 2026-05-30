@@ -34,6 +34,9 @@ class Group(BaseModel):
             unique_teams[match.away_team.name] = match.away_team
 
         return list(unique_teams.values())
+    
+    def all_predictions_complete(self) -> bool:
+        return all(match.is_played() for match in self.matches)
 
 
 if __name__ == "__main__":

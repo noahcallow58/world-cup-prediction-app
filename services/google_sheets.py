@@ -59,9 +59,10 @@ def submit_predictions(
         if len(row) < 3:
             continue
 
+        existing_name = row[1].strip().lower()
         existing_email = row[2].strip().lower()
 
-        if existing_email == email:
+        if existing_email == email and existing_name == name:
 
             existing_row_index = i
             break

@@ -4,17 +4,6 @@ import pandas as pd
 from tournament.schedule import load_openfootball_groups
 
 # ------------------------------------------------------------
-# Load data (cached so it doesn't reload every interaction)
-# ------------------------------------------------------------
-@st.cache_data
-def load_groups():
-    return load_openfootball_groups("data/worldcup.json")
-
-
-groups = load_groups()
-
-
-# ------------------------------------------------------------
 # Session state for predictions
 # ------------------------------------------------------------
 # if "predictions" not in st.session_state:
@@ -27,11 +16,11 @@ st.title("Group Stage Predictions")
 # ------------------------------------------------------------
 # Group selector (A–L)
 # ------------------------------------------------------------
-group_names = [g.name for g in groups]
+group_names = [g.name for g in st.session_state.groups]
 
 selected_group_name = st.selectbox("Select Group", group_names)
 
-group = next(g for g in groups if g.name == selected_group_name)
+group = next(g for g in st.session_state.groups if g.name == selected_group_name)
 
 st.subheader(f"Group {group.name}")
 st.divider()
@@ -40,9 +29,9 @@ st.divider()
 # ------------------------------------------------------------
 # Helper: update prediction state
 # ------------------------------------------------------------
-def set_prediction(match_id: int, home: int, away: int):
-    st.session_state.predictions[f"{match_id}_home"] = home
-    st.session_state.predictions[f"{match_id}_away"] = away
+# def set_prediction(match_id: int, home: int, away: int):
+#     st.session_state.predictions[f"{match_id}_home"] = home
+#     st.session_state.predictions[f"{match_id}_away"] = away
 
 
 # ------------------------------------------------------------
@@ -61,8 +50,8 @@ for match in group.matches:
     key_home = f"{match.match_id}_home"
     key_away = f"{match.match_id}_away"
 
-    default_home = st.session_state.predictions.get(key_home, 0)
-    default_away = st.session_state.predictions.get(key_away, 0)
+    default_home = match.home_score if match.home_score is not None else 0
+    default_away = match.away_score if match.away_score is not None else 0
 
     with col1:
         home_score = st.number_input(
@@ -82,7 +71,9 @@ for match in group.matches:
             key=f"input_{key_away}",
         )
 
-    set_prediction(match.match_id, home_score, away_score)
+    match.home_score = home_score
+    match.away_score = away_score
+    # set_prediction(match.match_id, home_score, away_score)
 
     st.divider()
 
@@ -95,27 +86,28 @@ st.markdown("## Standings")
 
 def compute_standings(group):
 
-    table = {}
+    # Initialize table with all teams
+    table = {
+        team.name: {
+            "MP": 0,
+            "W": 0,
+            "D": 0,
+            "L": 0,
+            "GF": 0,
+            "GA": 0,
+            "Pts": 0,
+        }
+        for team in group.teams()
+    }
 
     for match in group.matches:
 
-        if match.match_id not in [int(k.split("_")[0]) for k in st.session_state.predictions.keys()]:
+        home_goals = match.home_score
+        away_goals = match.away_score
+
+        # Skip incomplete predictions
+        if home_goals is None or away_goals is None:
             continue
-
-        home_goals = st.session_state.predictions.get(f"{match.match_id}_home", 0)
-        away_goals = st.session_state.predictions.get(f"{match.match_id}_away", 0)
-
-        for team in [match.home_team.name, match.away_team.name]:
-            if team not in table:
-                table[team] = {
-                    "MP": 0,
-                    "W": 0,
-                    "D": 0,
-                    "L": 0,
-                    "GF": 0,
-                    "GA": 0,
-                    "Pts": 0,
-                }
 
         home = table[match.home_team.name]
         away = table[match.away_team.name]
@@ -145,8 +137,8 @@ def compute_standings(group):
             home["Pts"] += 1
             away["Pts"] += 1
 
-    # convert to dataframe
     df = pd.DataFrame.from_dict(table, orient="index")
+
     df["GD"] = df["GF"] - df["GA"]
 
     df = df.sort_values(
@@ -157,10 +149,9 @@ def compute_standings(group):
     df.index.name = "Nation"
     df = df.reset_index()
 
-    # Insert position column
     df.insert(0, "", range(1, len(df) + 1))
-    return df
 
+    return df
 
 standings_df = compute_standings(group)
 

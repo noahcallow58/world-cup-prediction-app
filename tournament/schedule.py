@@ -1,7 +1,15 @@
 import json
 from typing import List
+import streamlit as st
 
 from tournament.schemas import Group, Match, Team
+
+# ------------------------------------------------------------
+# Load data (cached so it doesn't reload every interaction)
+# ------------------------------------------------------------
+@st.cache_data
+def load_groups():
+    return load_openfootball_groups("data/worldcup.json")
 
 def load_openfootball_groups(filepath: str) -> List[Group]:
     """
