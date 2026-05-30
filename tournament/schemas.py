@@ -18,6 +18,8 @@ class Match(BaseModel):
     home_score: Optional[int] = Field(default=None, ge=0)
     away_score: Optional[int] = Field(default=None, ge=0)
 
+    round: Optional[str] = None
+
     def is_played(self) -> bool:
         return (
             self.home_score is not None

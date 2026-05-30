@@ -31,8 +31,13 @@ winners = st.session_state.knockout_winners
 # ------------------------------------------------------------
 st.subheader("Knockout Fixtures")
 
+current_round = None
 
 for match in knockout_matches:
+
+    if match.round != current_round:
+        current_round = match.round
+        st.subheader(current_round)
 
     state = {
         "group_standings": st.session_state.group_standings,

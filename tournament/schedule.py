@@ -24,6 +24,7 @@ def load_openfootball_groups(filepath: str):
     for i, m in enumerate(matches_data):
 
         group_name = m.get("group", "n/a")
+        round = m.get("round")
 
         # ----------------------------------------------------
         # GROUP STAGE MATCH
@@ -34,6 +35,8 @@ def load_openfootball_groups(filepath: str):
             away_team=Team(name=m["team2"]),
             home_ref=m["team1"] if group_name == "n/a" else None,
             away_ref=m["team2"] if group_name == "n/a" else None,
+            round=round
+
         )
 
         # ----------------------------------------------------
