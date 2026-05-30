@@ -155,6 +155,8 @@ def compute_standings(group):
 
 standings_df = compute_standings(group)
 
+st.session_state["group_standings"][group.name[-1]] = standings_df
+
 st.dataframe(standings_df, width='stretch', hide_index=True)
 
 

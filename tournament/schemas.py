@@ -12,6 +12,9 @@ class Match(BaseModel):
     home_team: Team
     away_team: Team
 
+    home_ref: Optional[str] = None
+    away_ref: Optional[str] = None
+
     home_score: Optional[int] = Field(default=None, ge=0)
     away_score: Optional[int] = Field(default=None, ge=0)
 

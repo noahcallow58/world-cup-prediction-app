@@ -11,43 +11,53 @@ from tournament.schemas import Group, Match, Team
 def load_groups():
     return load_openfootball_groups("data/worldcup.json")
 
-def load_openfootball_groups(filepath: str) -> List[Group]:
-    """
-    Load OpenFootball worldcup JSON and convert into internal Group models.
-    """
+def load_openfootball_groups(filepath: str):
 
     with open(filepath, "r") as f:
         data = json.load(f)
 
-    groups: List[Group] = []
-    group_matches = {}
-
     matches_data = data.get("matches", [])
 
+    groups = {}
+    knockout_matches = []
+
     for i, m in enumerate(matches_data):
-        # print(m)
-        # break
+
         group_name = m.get("group", "n/a")
 
+        # ----------------------------------------------------
+        # GROUP STAGE MATCH
+        # ----------------------------------------------------
         match = Match(
-            match_id=(i+1),
-
+            match_id=i + 1,
             home_team=Team(name=m["team1"]),
             away_team=Team(name=m["team2"]),
-        )
-        if group_name not in group_matches.keys():
-            group_matches[group_name] = []
-        group_matches[group_name].append(match)
-
-    for k in group_matches.keys():
-        group = Group(
-            name=k,
-            matches=group_matches[k],
+            home_ref=m["team1"] if group_name == "n/a" else None,
+            away_ref=m["team2"] if group_name == "n/a" else None,
         )
 
-        groups.append(group)
+        # ----------------------------------------------------
+        # GROUP STAGE
+        # ----------------------------------------------------
+        if group_name != "n/a":
 
-    return groups
+            if group_name not in groups:
+                groups[group_name] = []
+
+            groups[group_name].append(match)
+
+        # ----------------------------------------------------
+        # KNOCKOUT STAGE
+        # ----------------------------------------------------
+        else:
+            knockout_matches.append(match)
+
+    group_objs = [
+        Group(name=k, matches=v)
+        for k, v in groups.items()
+    ]
+
+    return group_objs, knockout_matches
 
 if __name__ == "__main__":
 
