@@ -3,43 +3,39 @@ from services.state import init_state
 
 init_state()
 
-st.set_page_config(
-    page_title="World Cup Charity Challenge",
-    page_icon="",
-    layout="wide",
+st.title("FIFA World Cup Prediction Competition")
+
+# URL of the image
+kane_url = "https://upload.wikimedia.org/wikipedia/commons/9/94/England_national_team_World_Cup_2018.jpg"
+
+# Display the image
+st.image(
+    kane_url, 
+    caption="https://www.soccer.ru/galery/1057623/photo/736120", 
+    width='stretch'
 )
 
-st.title("World Cup Charity Challenge")
+st.markdown("""
+Welcome to the prediction competition.
 
-st.markdown(
-    """
-Welcome to the 2026 World Cup Prediction Challenge!
+### How it works
 
-Use the sidebar to navigate between:
-- Group stage predictions
-- Knockout predictions
-- Leaderboard
-- Rules
+1. Predict every match score.
+2. Predict group winners and runners-up.
+3. Predict the knockout bracket through to the winner.
+4. Earn points for:
+   - Correct scores
+   - Correct results
+   - Correct teams advancing
 
-Submit your predictions before the tournament starts.
-"""
-)
+### Key Information
 
-st.divider()
+- Entry Fee: **£5**
+- Predictions lock when the tournament begins.
+- Standings will be updated throughout the tournament.
+- Full scoring details can be found on the **Rules** page.
 
-st.markdown("## How It Works")
+Good luck!
+""")
 
-st.markdown(
-    """
-- Predict every World Cup match
-- Earn points for correct results and scorelines
-- Group standings update automatically
-- Leaderboard updates throughout the tournament
-"""
-)
-
-st.divider()
-
-st.info(
-    "Predictions are currently stored locally in session state."
-)
+st.page_link("pages/02_Rules.py", label="View Full Rules")

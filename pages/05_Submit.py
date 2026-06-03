@@ -1,5 +1,5 @@
 import re
-
+import random
 import streamlit as st
 
 from tournament.schedule import load_groups
@@ -44,14 +44,14 @@ st.session_state["access_code"] = access_code
 # ------------------------------------------------------------
 # Development Testing Helper
 # ------------------------------------------------------------
-if st.secrets.get("environment") == "dev":
+if st.secrets["env"]["environment"] == "dev":
 
     if st.button("Fill Test Predictions"):
 
         for group in st.session_state.groups:
             for match in group.matches:
-                match.home_score = 1
-                match.away_score = 1
+                match.home_score = random.randint(0,5)
+                match.away_score = random.randint(0,5)
 
         st.rerun()
 
