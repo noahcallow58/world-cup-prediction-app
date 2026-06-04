@@ -105,7 +105,7 @@ if (
     rebuild_annex_mapping()
 
 winners = st.session_state.knockout_winners
-losers = st.session_state.knockout_losers
+losers = st.session_state["knockout_losers"]
 
 # ------------------------------------------------------------
 # 2. Render knockout matches
