@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 
 from tournament.schedule import load_openfootball_groups
+from services.state import init_state
+
+init_state()
 
 # ------------------------------------------------------------
 # Session state for predictions

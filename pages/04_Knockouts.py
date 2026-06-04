@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 from tournament.knockout import (resolve_team, get_best_third_place_groups, get_annex_mapping)
+from services.state import init_state
+
+init_state()
 
 def resolve_with_ui(ref, label, match_id, ref2):
     # Always let the engine look at group standings and knockout winners first
@@ -8,6 +11,7 @@ def resolve_with_ui(ref, label, match_id, ref2):
     "group_standings": st.session_state.group_standings,
     "knockout_winners": st.session_state.knockout_winners,
     "annex_mapping": st.session_state.get("annex_mapping", None),
+    "knockout_losers": st.session_state.knockout_losers,
     }, ref2)
 
     # 1. If it's a standard string, everything resolved automatically
@@ -101,6 +105,7 @@ if (
     rebuild_annex_mapping()
 
 winners = st.session_state.knockout_winners
+losers = st.session_state.knockout_losers
 
 # ------------------------------------------------------------
 # 2. Render knockout matches
@@ -146,6 +151,9 @@ else:
         home_team = resolve_with_ui(match.home_ref, "home", match.match_id, match.away_ref)
         away_team = resolve_with_ui(match.away_ref, "away", match.match_id, match.home_ref)
 
+        match.home_team.name = home_team
+        match.away_team.name = away_team
+
         st.markdown(f"### {home_team} vs {away_team}")
         col1, col2 = st.columns(2)
         
@@ -178,9 +186,13 @@ else:
 
         if home_score is not None and away_score is not None:
             if home_score > away_score:
-                winners[f"W{match.match_id}"] = home_team
+                winner = home_team
+                winners[f"W{match.match_id}"] = winner
+                losers[f"L{match.match_id}"] = away_team
             elif away_score > home_score:
-                winners[f"W{match.match_id}"] = away_team
+                winner = away_team
+                winners[f"W{match.match_id}"] = winner
+                losers[f"L{match.match_id}"] = home_team
             else:
                 winner = st.selectbox(
                     "Winner after Penalties",
@@ -188,5 +200,10 @@ else:
                     key=f"winner_{key}",
                 )
                 winners[f"W{match.match_id}"] = winner
+
+                loser = away_team if winner == home_team else home_team
+                losers[f"L{match.match_id}"] = loser
+
+            match.winner = winner
 
     st.divider()

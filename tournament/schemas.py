@@ -20,6 +20,8 @@ class Match(BaseModel):
 
     round: Optional[str] = None
 
+    winner: Optional[str] = None
+
     def is_played(self) -> bool:
         return (
             self.home_score is not None

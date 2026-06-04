@@ -17,12 +17,15 @@ def resolve_team(ref: str, state: Dict[str, Any], ref2: str):
     # 1. Knockout winner reference
     if ref.startswith("W"):
         return state["knockout_winners"].get(ref)
+    
+    elif ref.startswith("L"):
+        return state["knockout_losers"].get(ref)
 
     # 2. Group position reference (1A, 2B)
-    if len(ref) == 2 and ref[0].isdigit():
+    elif len(ref) == 2 and ref[0].isdigit():
         return resolve_group_position(ref, state)
 
-    if ref.startswith("3"):
+    elif ref.startswith("3"):
         
         annex_c = st.session_state.annex_c
 
@@ -35,18 +38,18 @@ def resolve_team(ref: str, state: Dict[str, Any], ref2: str):
         #     or st.session_state.cached_best_third_groups != best_groups):
         
             # st.session_state.cached_best_third_groups = best_groups
-        print("\nQualified third-place teams:")
-        for team in best_thirds:
-            print(
-                f"{team['group']} -> {team['team']} "
-                f"(Pts={team['Pts']}, GD={team['GD']}, GF={team['GF']})"
-            )
+        # print("\nQualified third-place teams:")
+        # for team in best_thirds:
+        #     print(
+        #         f"{team['group']} -> {team['team']} "
+        #         f"(Pts={team['Pts']}, GD={team['GD']}, GF={team['GF']})"
+        #     )
             
-        print("\nBest third-place groups:")
-        print(best_groups)
+        # print("\nBest third-place groups:")
+        # print(best_groups)
 
         mapping = get_annex_mapping(best_groups, annex_c)
-        print(mapping)
+        # print(mapping)
         
 
         return resolve_group_position(mapping[ref2], state)

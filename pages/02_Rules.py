@@ -1,4 +1,8 @@
 import streamlit as st
+from services.state import init_state
+
+init_state()
+
 
 st.title("Competition Rules")
 

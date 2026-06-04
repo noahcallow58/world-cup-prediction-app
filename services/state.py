@@ -3,54 +3,53 @@ from tournament.schedule import load_groups
 import pandas as pd
 
 def init_state():
+    if "initialised" not in st.session_state:
+        st.session_state.initialised = True
 
-    groups, knockouts = load_groups()
+        groups, knockouts = load_groups()
 
-    if "groups" not in st.session_state:
-        st.session_state.groups = groups
+        if "groups" not in st.session_state:
+            st.session_state.groups = groups
 
-    # if "predictions" not in st.session_state:
-    #     st.session_state.predictions = {}
+        # if "predictions" not in st.session_state:
+        #     st.session_state.predictions = {}
 
-    if "name" not in st.session_state:
-        st.session_state.name = ""
+        if "name" not in st.session_state:
+            st.session_state.name = ""
 
-    if "email" not in st.session_state:
-        st.session_state.email = ""
+        if "email" not in st.session_state:
+            st.session_state.email = ""
 
-    if "access_code" not in st.session_state:
-        st.session_state.access_code = ""
+        if "access_code" not in st.session_state:
+            st.session_state.access_code = ""
 
-    if "knockout_matches" not in st.session_state:
-        st.session_state.knockout_matches = knockouts
+        if "knockout_matches" not in st.session_state:
+            st.session_state.knockout_matches = knockouts
 
-    if "knockout_winners" not in st.session_state:
-        st.session_state.knockout_winners = {}
+        if "knockout_winners" not in st.session_state:
+            st.session_state.knockout_winners = {}
 
-    if "group_standings" not in st.session_state:
-        st.session_state.group_standings = {}
+        if "knockout_losers" not in st.session_state:
+            st.session_state.knockout_losers = {}
 
-    if "group_tiebreakers" not in st.session_state:
-        st.session_state.group_tiebreakers = {}
+        if "group_standings" not in st.session_state:
+            st.session_state.group_standings = {}
 
-    if "resolved_teams" not in st.session_state:
-        st.session_state.resolved_teams = {}  # Format: {match_id_home: "Brazil", match_id_away: "France"}
+        if "group_tiebreakers" not in st.session_state:
+            st.session_state.group_tiebreakers = {}
 
-    # 1. Initialize a reset counter in session state
-    if "reset_counter" not in st.session_state:
-        st.session_state.reset_counter = 0
+        if "resolved_teams" not in st.session_state:
+            st.session_state.resolved_teams = {}  # Format: {match_id_home: "Brazil", match_id_away: "France"}
 
-    if "knockout_matches" not in st.session_state:
-        st.warning("Knockout fixtures not initialised yet.")
-        st.stop()
+        # 1. Initialize a reset counter in session state
+        if "reset_counter" not in st.session_state:
+            st.session_state.reset_counter = 0
 
-    if "annex_c" not in st.session_state:
-        st.session_state.annex_c = pd.read_csv(
-            "data/annexC.csv"
-        )
+        if "knockout_matches" not in st.session_state:
+            st.warning("Knockout fixtures not initialised yet.")
+            st.stop()
 
-    # if "cached_best_thirds" not in st.session_state:
-    #     st.session_state.cached_best_thirds = None
-
-    # if "cached_mapping" not in st.session_state:
-    #     st.session_state.cached_mapping = None
+        if "annex_c" not in st.session_state:
+            st.session_state.annex_c = pd.read_csv(
+                "data/annexC.csv"
+            )

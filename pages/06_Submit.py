@@ -3,8 +3,12 @@ import random
 import streamlit as st
 
 from tournament.schedule import load_groups
+from tournament.scoring import build_prediction_payload
 
 from services.google_sheets import submit_predictions
+from services.state import init_state
+
+init_state()
 
 st.title("Submit Predictions")
 
@@ -65,43 +69,6 @@ def valid_email(email: str) -> bool:
     return re.match(pattern, email) is not None
 
 
-def build_prediction_payload():
-
-    groups = st.session_state.groups
-
-    if st.secrets["env"]["environment"] == "dev":
-        groups = groups[:2]  # Only Groups A and B
-
-    print(groups, st.secrets["env"]["environment"])
-
-    missing = []
-    predictions = []
-
-    for group in groups:
-        for match in group.matches:
-
-            if not match.is_played():
-                missing.append(
-                    f"{group.name}: {match.home_team.name} vs {match.away_team.name}"
-                )
-                continue
-
-            predictions.append({
-                "match_id": match.match_id,
-                "group": group.name,
-                "home_team": match.home_team.name,
-                "away_team": match.away_team.name,
-                "home_score": match.home_score,
-                "away_score": match.away_score,
-            })
-
-    if missing:
-        st.error("Enter predictions for:\n" + "\n".join(missing))
-        return None
-
-    return predictions
-
-
 if st.button("Submit Predictions"):
 
     name = st.session_state.name.strip()
@@ -136,12 +103,17 @@ if st.button("Submit Predictions"):
 
         prediction_payload = build_prediction_payload()
 
-        if prediction_payload is not None:
+        match_exists = any(pred["match_id"] == 104 for pred in prediction_payload)
 
-            submit_predictions(
-                name=name,
-                email=email,
-                predictions=prediction_payload,
-            )
+        if match_exists:
+            if prediction_payload is not None:
 
-            st.success("Predictions submitted successfully!")
+                submit_predictions(
+                    name=name,
+                    email=email,
+                    predictions=prediction_payload,
+                )
+
+                st.success("Predictions submitted successfully!")
+        else:
+            st.error("Please complete predictions.")
