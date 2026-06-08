@@ -3,6 +3,7 @@ import subprocess
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+from scoreboard import calculate_leaderboard
 
 # Configure the page
 st.set_page_config(page_title="World Cup Admin Panel", layout="wide")
@@ -164,9 +165,12 @@ if st.button("Save Changes & Update Scoreboard", type="primary"):
 
     with st.spinner("Recalculating user points..."):
         try:
-            result = subprocess.run(["python", "scoreboard.py"], capture_output=True, text=True, check=True)
-            st.code(result.stdout)
+            calculate_leaderboard(
+                excel_file_path=Path('predictions') / 'entry_predictions_example.xlsx',
+                json_file_path=Path('ground_truth') / 'worldcup_live.json',
+                output_file_path='tournament_leaderboard.xlsx',
+            )
             st.success("Leaderboard updated!")
-        except subprocess.CalledProcessError as e:
+        except Exception as e:
             st.error("Error executing scoreboard.py:")
-            st.code(e.stderr)
+            st.code(e)
