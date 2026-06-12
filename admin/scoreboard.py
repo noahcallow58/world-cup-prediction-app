@@ -118,6 +118,10 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 15
 
+            elif round_name == "Match for third place":
+                if has_winner and pred.get("winner") == truth["winner"]:
+                    match_points[m_id] += 15
+
             elif round_name == "Final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 20
@@ -191,7 +195,7 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
 
 if __name__ == "__main__":
     calculate_leaderboard(
-        excel_file_path=Path('predictions') / 'entry_predictions_example.xlsx',
+        excel_file_path=Path('predictions') / 'world-cup-predictions-FINAL-SUBMISSION-CLEAN.xlsx',
         json_file_path=Path('ground_truth') / 'worldcup_live.json',
         output_file_path='tournament_leaderboard.xlsx',
     )

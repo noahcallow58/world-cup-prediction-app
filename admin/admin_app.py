@@ -166,7 +166,7 @@ if st.button("Save Changes & Update Scoreboard", type="primary"):
     with st.spinner("Recalculating user points..."):
         try:
             calculate_leaderboard(
-                excel_file_path=Path('predictions') / 'entry_predictions_example.xlsx',
+                excel_file_path=Path('predictions') / 'world-cup-predictions-FINAL-SUBMISSION-CLEAN.xlsx',
                 json_file_path=Path('ground_truth') / 'worldcup_live.json',
                 output_file_path='tournament_leaderboard.xlsx',
             )
