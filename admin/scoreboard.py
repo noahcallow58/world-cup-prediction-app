@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 from pathlib import Path
+import ast
 
 
 def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
@@ -25,11 +26,17 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
         name = row["Name"]
         timestamp = row["Timestamp"]
 
+        pred_str = row["Predictions"]
+
         try:
-            user_predictions = json.loads(row["Predictions"])
-        except (json.JSONDecodeError, TypeError):
-            print(f"Skipping row {index} due to invalid JSON string format.")
-            continue
+            user_predictions = json.loads(pred_str)
+        except json.JSONDecodeError:
+            try:
+                user_predictions = ast.literal_eval(pred_str)
+            except (ValueError, SyntaxError):
+                print(f"Skipping row {index}")
+                continue
+
 
         # Track standalone bonuses
         best_3rd_bonus = 0
