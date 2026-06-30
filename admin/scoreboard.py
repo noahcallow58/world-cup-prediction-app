@@ -27,7 +27,7 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
         
         tournament_winner_bonus = 0
         predicted_champion = "N/A"
-        ko_stage_bonuses = {stage: None for stage in knockout_stages}
+        ko_stage_bonuses = {}
 
         email = row["Email"]
         name = row["Name"]
@@ -99,8 +99,8 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
                     tournament_winner_bonus = 30 if pred["winner"] == truth["winner"] else 0  # 30 pts for champion
 
             if round_name in knockout_stages and has_winner:
-                if ko_stage_bonuses[round_name] is None:
-                    ko_stage_bonuses[round_name] = 0
+                qk = f"{m_id}: {round_name}"
+                ko_stage_bonuses[qk] = 0
             
             # Activate the individual match column ONLY if the game has live structural results
             if has_score or has_winner:
@@ -117,7 +117,7 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
                     and pred.get("winner") == truth["winner"]
                 ):
                     match_points[m_id] += 5
-                    ko_stage_bonuses["Round of 32"] += 5
+                    ko_stage_bonuses[f"{m_id}: Round of 32"] += 5
 
                 # GRANULAR GROUP WINNER & RUNNER-UP BONUS 
                 if "team1" in truth:
@@ -133,27 +133,27 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
             elif round_name == "Round of 16":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 5
-                    ko_stage_bonuses["Round of 16"] += 5
+                    ko_stage_bonuses[f"{m_id}: Round of 16"] += 5
 
             elif round_name == "Quarter-final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 10
-                    ko_stage_bonuses["Quarter-final"] += 10
+                    ko_stage_bonuses[f"{m_id}: Quarter-final"] += 10
 
             elif round_name == "Semi-final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 15
-                    ko_stage_bonuses["Semi-final"] += 15
+                    ko_stage_bonuses[f"{m_id}: Semi-final"] += 15
 
             elif round_name == "Match for third place":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 15
-                    ko_stage_bonuses["Match for third place"] += 15
+                    ko_stage_bonuses[f"{m_id}: Match for third place"] += 15
 
             elif round_name == "Final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 20
-                    ko_stage_bonuses["Final"] += 20
+                    ko_stage_bonuses[f"{m_id}: Final"] += 20
 
             # ==========================================
             # STEP B: BASELINE SCORING SYSTEM (Scores Required)
@@ -210,8 +210,8 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
         for slot in group_slots:
             user_record[f"Bonus {slot}"] = slot_bonuses[slot]
 
-        for stage in knockout_stages:
-            user_record[f"Bonus: {stage}"] = ko_stage_bonuses[stage]
+        for key in ko_stage_bonuses.keys():
+            user_record[f"Bonus {key}"] = ko_stage_bonuses[key]
 
         leaderboard.append(user_record)
 
