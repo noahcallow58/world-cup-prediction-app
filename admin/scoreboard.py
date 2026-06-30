@@ -18,10 +18,17 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
     # Dynamically generate the 24 standard qualification slots for groups A through L
     group_slots = [f"{pos}{letter}" for letter in "ABCDEFGHIJKL" for pos in (1, 2)]
 
+    knockout_stages = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"]
+
     leaderboard = []
 
     # 3. Process each user row
     for index, row in df.iterrows():
+        
+        tournament_winner_bonus = 0
+        predicted_champion = "N/A"
+        ko_stage_bonuses = {stage: None for stage in knockout_stages}
+
         email = row["Email"]
         name = row["Name"]
         timestamp = row["Timestamp"]
@@ -85,6 +92,15 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
             # Check what information the admin has entered so far
             has_score = "team1_score" in truth and truth["team1_score"] is not None
             has_winner = "winner" in truth and truth["winner"] is not None
+
+            if m_id == 104 and pred.get("winner"):
+                predicted_champion = pred["winner"]
+                if has_winner:
+                    tournament_winner_bonus = 30 if pred["winner"] == truth["winner"] else 0  # 30 pts for champion
+
+            if round_name in knockout_stages and has_winner:
+                if ko_stage_bonuses[round_name] is None:
+                    ko_stage_bonuses[round_name] = 0
             
             # Activate the individual match column ONLY if the game has live structural results
             if has_score or has_winner:
@@ -101,6 +117,7 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
                     and pred.get("winner") == truth["winner"]
                 ):
                     match_points[m_id] += 5
+                    ko_stage_bonuses["Round of 32"] += 5
 
                 # GRANULAR GROUP WINNER & RUNNER-UP BONUS 
                 if "team1" in truth:
@@ -116,22 +133,27 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
             elif round_name == "Round of 16":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 5
+                    ko_stage_bonuses["Round of 16"] += 5
 
             elif round_name == "Quarter-final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 10
+                    ko_stage_bonuses["Quarter-final"] += 10
 
             elif round_name == "Semi-final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 15
+                    ko_stage_bonuses["Semi-final"] += 15
 
             elif round_name == "Match for third place":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 15
+                    ko_stage_bonuses["Match for third place"] += 15
 
             elif round_name == "Final":
                 if has_winner and pred.get("winner") == truth["winner"]:
                     match_points[m_id] += 20
+                    ko_stage_bonuses["Final"] += 20
 
             # ==========================================
             # STEP B: BASELINE SCORING SYSTEM (Scores Required)
@@ -174,6 +196,7 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
         }
 
         # Inject final summary metrics
+        user_record["Predicted Champion"] = predicted_champion
         user_record["Group Qualification Bonus"] = group_qual_bonus
         user_record["Best 3rd-Place Bonus"] = best_3rd_bonus
         user_record["Total Points"] = total_points
@@ -186,6 +209,9 @@ def calculate_leaderboard(excel_file_path, json_file_path, output_file_path):
         # Inject the breakdown columns for each group slot (e.g., "Bonus 1A", "Bonus 2A")
         for slot in group_slots:
             user_record[f"Bonus {slot}"] = slot_bonuses[slot]
+
+        for stage in knockout_stages:
+            user_record[f"Bonus: {stage}"] = ko_stage_bonuses[stage]
 
         leaderboard.append(user_record)
 
